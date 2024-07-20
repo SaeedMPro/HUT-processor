@@ -1,0 +1,38 @@
+# Ignore ModelSim temporary and output files
+*.mti
+*.mpf
+*.bak
+
+# Common temporary and backup files
+*~
+*.swp
+
+# ModelSim simulation output files
+*.wlf
+*.vcd
+*.vcd.gz
+*.out
+*.log
+*.jou
+*.tcl
+
+# ModelSim specific directories
+work/
+transcript
+vsim.wlf
+
+# Ignore other generated files
+*.obj
+*.elf
+*.hex
+*.bin
+*.s19
+*.mem
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+#vscode
+.vscode
+\coverage
