@@ -4,7 +4,7 @@ use IEEE.numeric_std.all;
 
 entity seven_shift is
     port (
-        sevenShift_in  : in  std_logic_vector (15 downto 0);
+        sevenShift_in  : in  std_logic_vector (8 downto 0);
         sevenShift_out : out std_logic_vector (15 downto 0)
     );
 end seven_shift;

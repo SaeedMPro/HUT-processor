@@ -3,11 +3,12 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 entity mux_2to1 is
+	generic (n : integer := 16);
     port(
-        mux2to1_in0 : in std_logic_vector (15 downto 0);
-        mux2to1_in1 : in std_logic_vector (15 downto 0);
+        mux2to1_in0 : in std_logic_vector (n-1 downto 0);
+        mux2to1_in1 : in std_logic_vector (n-1 downto 0);
         mux2to1_sel : in std_logic;  
-        mux2to1_out : out std_logic_vector (15 downto 0)
+        mux2to1_out : out std_logic_vector (n-1 downto 0)
     );
 end mux_2to1;
 

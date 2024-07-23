@@ -5,8 +5,8 @@ use IEEE.numeric_std.all;
 entity alu is
 	port (
 		ALU_in0, ALU_in1	: in std_logic_vector (15 downto 0);
-		ALU_opr	: in std_logic; -- '0' for "+" & '1' for "or"
-		ALU_out	: out std_logic_vector (15 downto 0)
+		ALU_opr				: in std_logic; 	-- '0' for "+" & '1' for "or"
+		ALU_out				: out std_logic_vector (15 downto 0)
 	);
 end alu;
 
