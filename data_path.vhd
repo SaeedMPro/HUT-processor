@@ -13,13 +13,14 @@ architecture Behavioral of data_path is
 
     -- Signals
     signal instruction            : std_logic_vector(15 downto 0);
-    signal pc_sel, we_pc          : std_logic;
+    signal pc_sel		          : std_logic;
+    signal we_pc 		          : std_logic := '0';
     signal we_reg, we_mem         : std_logic;
     signal alu_sel_a              : std_logic_vector(1 downto 0);
     signal alu_sel_b              : std_logic_vector(1 downto 0);
     signal alu_opr                : std_logic;
     signal wd_sel                 : std_logic_vector(1 downto 0);
-    signal pc_in, pc, pc_out      : std_logic_vector(15 downto 0);
+    signal pc_in, pc_out 	      : std_logic_vector(15 downto 0):= x"0000";
     signal alu_result             : std_logic_vector(15 downto 0);
     signal reg_out                : std_logic_vector(15 downto 0);
     signal not_out                : std_logic_vector(15 downto 0);
@@ -41,25 +42,21 @@ architecture Behavioral of data_path is
     signal alu_in_b               : std_logic_vector(15 downto 0);
 
 begin
-
+	
     -- PC
-    process(clk, rst)
-    begin
-        if rst = '1' then
-            pc <= (others => '0');
-        elsif rising_edge(clk) then
-            if we_pc = '1' then
-                pc <= pc_in;
-            end if;
-        end if;
-    end process;
-
-    pc_out <= pc;
+    pc : entity work.PC
+    	port map(
+        	clk       => clk,
+        	reset     => rst,
+       		PC_write  => we_pc,                 
+        	PC_in     => pc_in,  
+       	 	PC_out    => pc_out 
+    	);
     
     -- Instruction Memory
     instruction_memory : entity work.instruction_memory
         port map(
-            read_address => pc,
+            read_address => pc_out,
             instruction  => instruction
         );
 
@@ -78,7 +75,11 @@ begin
             wd_sel      => wd_sel,
             wr_sel      => wr_sel
         );
-    
+
+    -- Immediate Value Extraction
+    immediate_y_type <= instruction(7 downto 4);
+    immediate_z_type <= instruction(8 downto 0);
+
     -- Left Shift Immediate
     left_shift_imm : entity work.left_shift_imm
         port map(
@@ -169,7 +170,7 @@ begin
     -- adder for RJMP inst.
     adder : entity work.adder
         port map(
-            adder_a => pc,
+            adder_a => pc_out,
             adder_b => alu_result,
             adder_out => adder_RJMP
         );
@@ -187,12 +188,12 @@ begin
     -- Write Data address Selection
     wr_mux : entity work.mux_2to1
 	generic map(4)
-    port map(
-        mux2to1_in0 => instruction(3 downto 0),
-        mux2to1_in1 => instruction(12 downto 9),
-        mux2to1_sel => wr_sel,
-        mux2to1_out => wr_adr
-    );
+        port map(
+            mux2to1_in0 => instruction(3 downto 0),
+            mux2to1_in1 => instruction(12 downto 9),
+            mux2to1_sel => wr_sel,
+            mux2to1_out => wr_adr
+        );
 
     -- Write Data Selection
     wd_mux : entity work.mux_3to1
@@ -207,17 +208,18 @@ begin
     -- Increment PC
     pc_increment : entity work.adder
         port map(
-            adder_a => pc,
+            adder_a => pc_out,
             adder_b => x"0002",
             adder_out => pc_incremented
         );
 
     -- Mux for PC
     mux_pc : entity work.mux_2to1
+	generic map(16)
         port map(
             mux2to1_in0 => pc_incremented,
             mux2to1_in1 => adder_RJMP,
-            mux2to1_sel => pc_sel,  
+            mux2to1_sel => pc_sel,
             mux2to1_out => pc_in
         );
 

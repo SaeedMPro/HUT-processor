@@ -127,7 +127,7 @@ begin
                     we_pc    <= '0';
                     we_reg   <= '0';
                     we_mem   <= '0';
-                    alu_sel_a <= "0";
+                    alu_sel_a <= "00";
                     alu_sel_b <= "00";
                     alu_opr  <= '0';
                     wd_sel   <= "00";

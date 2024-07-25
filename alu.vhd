@@ -11,19 +11,19 @@ entity alu is
 end alu;
 
 architecture Behavioral of alu is
-	signal ALU_temp : std_logic_vector (15 downto 0);
+	--signal ALU_temp : std_logic_vector (15 downto 0);
 begin
 	process(ALU_in0, ALU_in1, ALU_opr)
 	begin
 		case ALU_opr is
 			when '0' =>
-				ALU_temp <= std_logic_vector(unsigned(ALU_in0) + unsigned(ALU_in1));
+				ALU_out <= std_logic_vector(unsigned(ALU_in0) + unsigned(ALU_in1));
 			when '1' =>
-				ALU_temp <= ALU_in0 or ALU_in1;
+				ALU_out <= std_logic_vector(unsigned(ALU_in0) or unsigned(ALU_in1));
 			when others =>
-				ALU_temp <= (others => '0');
+				ALU_out <= x"0000";
 		end case;
 	end process;
-	ALU_out <= ALU_temp;
+	--ALU_out <= ALU_temp;
 end Behavioral;
 

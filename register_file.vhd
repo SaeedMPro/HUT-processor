@@ -54,7 +54,12 @@ architecture Behavioral of register_file is
 
     signal we_signals  : std_logic_vector(15 downto 0);
     type reg_array is array (0 to 15) of std_logic_vector(15 downto 0);
-    signal reg_outputs : reg_array;
+    signal reg_outputs : reg_array := (
+        x"0000", x"1234", x"5678", x"9ABC",
+        x"DEF0", x"1111", x"2222", x"3333",
+        x"4444", x"5555", x"6666", x"7777",
+        x"8888", x"9999", x"AAAA", x"BBBB"
+    );
 
 begin
     --write enable signals
