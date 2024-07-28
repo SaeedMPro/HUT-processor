@@ -3,21 +3,17 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity data_memory is 
-    generic (
-        adr_size : integer := 4;
-        data_size : integer := 16 
-    );
     port(
         clk      : in std_logic;
         MEM_we   : in std_logic;
-        MEM_adr  : in std_logic_vector(adr_size-1 downto 0);
-        MEM_din  : in std_logic_vector(data_size-1 downto 0);
-        MEM_dout : out std_logic_vector(data_size-1 downto 0)
+        MEM_adr  : in std_logic_vector(15 downto 0);
+        MEM_din  : in std_logic_vector(15 downto 0);
+        MEM_dout : out std_logic_vector(15 downto 0)
     );
 end entity;
 
 architecture behavioral of data_memory is
-    type ram_type is array (0 to (2**adr_size - 1)) of std_logic_vector(data_size-1 downto 0);    
+    type ram_type is array (0 to 15) of std_logic_vector(15 downto 0);    
     signal my_ram : ram_type := (
         "0000000000000000",  -- default values
         "0000000000000001",

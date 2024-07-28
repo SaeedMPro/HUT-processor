@@ -40,11 +40,153 @@ architecture Behavioral of data_path is
     signal adder_RJMP             : std_logic_vector(15 downto 0);
     signal alu_in_a               : std_logic_vector(15 downto 0);
     signal alu_in_b               : std_logic_vector(15 downto 0);
+	
+	component controller
+    	port(
+        	instruction : in  std_logic_vector(15 downto 0);
+        	rst         : in  std_logic;
+        	pc_sel      : out std_logic;
+        	we_pc       : out std_logic;
+        	we_reg      : out std_logic;
+        	we_mem      : out std_logic;
+        	alu_sel_a   : out std_logic_vector(1 downto 0);
+        	alu_sel_b   : out std_logic_vector(1 downto 0);
+        	alu_opr     : out std_logic;
+        	wd_sel      : out std_logic_vector(1 downto 0);
+        	wr_sel      : out std_logic
+    	);
+	end component;
+	
+	component adder
+    	port(
+        	adder_a : in std_logic_vector (15 downto 0);
+        	adder_b : in std_logic_vector (15 downto 0);
+        	adder_out : out std_logic_vector (15 downto 0)
+    	);
+	end component;
+	
+	component PC
+    	port(
+        	clk         : in std_logic;
+        	reset       : in std_logic;
+        	PC_write    : in std_logic;                  
+       		PC_in       : in std_logic_vector(15 downto 0);  
+        	PC_out      : out std_logic_vector(15 downto 0)  
+    	);
+	end component;
+	
+	component register_file
+		port (
+			clk, rst, RE_we		 : in std_logic;
+        	RF_read, RF_adr_w    : in std_logic_vector (3 downto 0);
+        	RF_wd    			 : in std_logic_vector (15 downto 0);
+        	RF_out    			 : out std_logic_vector (15 downto 0)
+		);
+	end component; 
+	
+	component data_memory 
+    	port(
+        	clk      : in std_logic;
+        	MEM_we   : in std_logic;
+        	MEM_adr  : in std_logic_vector(15 downto 0);
+        	MEM_din  : in std_logic_vector(15 downto 0);
+        	MEM_dout : out std_logic_vector(15 downto 0)
+    	);
+	end component;
+	
+	component instruction_memory
+    	port(
+        	read_address : in std_logic_vector (15 downto 0);
+        	instruction  : out std_logic_vector (15 downto 0)
+    	);
+	end component;
+
+	component alu
+		port (
+			ALU_in0, ALU_in1	: in std_logic_vector (15 downto 0);
+			ALU_opr				: in std_logic; 	
+			ALU_out				: out std_logic_vector (15 downto 0)
+		);
+	end component;
+	
+	component mux_2to1
+		generic (n : integer := 16);
+    	port(
+        	mux2to1_in0 : in std_logic_vector (n-1 downto 0);
+        	mux2to1_in1 : in std_logic_vector (n-1 downto 0);
+        	mux2to1_sel : in std_logic;  
+        	mux2to1_out : out std_logic_vector (n-1 downto 0)
+    	);
+	end component;
+	
+	component mux_3to1
+    	port(
+        	mux3to1_in0 : in std_logic_vector (15 downto 0);
+        	mux3to1_in1 : in std_logic_vector (15 downto 0);
+        	mux3to1_in2 : in std_logic_vector (15 downto 0);
+        	mux3to1_sel : in std_logic_vector (1 downto 0);  
+        	mux3to1_out : out std_logic_vector (15 downto 0)
+    	);
+	end component;
+	
+	component mux_4to1
+    	port(
+    	    mux4to1_in0 : in std_logic_vector (15 downto 0);
+        	mux4to1_in1 : in std_logic_vector (15 downto 0);
+        	mux4to1_in2 : in std_logic_vector (15 downto 0);
+        	mux4to1_in3 : in std_logic_vector (15 downto 0);
+        	mux4to1_sel : in std_logic_vector (1 downto 0);  
+        	mux4to1_out : out std_logic_vector (15 downto 0)
+    	);
+	end component;
+
+	component not_16bit
+    	port(
+        	NOT_in  : in  std_logic_vector(15 downto 0);
+        	NOT_out : out std_logic_vector(15 downto 0)
+    	);
+	end component;
+
+	component left_shift_imm
+    	port(
+        	LSI_in   : in std_logic_vector (3 downto 0);
+        	LSI_out : out std_logic_vector (15 downto 0)
+    	);
+	end component;
+	
+	component seven_shift
+    	port (
+        	sevenShift_in  : in  std_logic_vector (8 downto 0);
+        	sevenShift_out : out std_logic_vector (15 downto 0)
+    	);
+	end component;
+
+	component one_shift
+   		port (
+        	oneShift_in  : in  std_logic_vector (15 downto 0);
+        	oneShift_out : out std_logic_vector (15 downto 0)
+    	);
+	end component;
+
+	component sign_extend
+    	port(
+        	SE_in  : in std_logic_vector (8 downto 0);
+        	SE_out : out std_logic_vector (15 downto 0)    
+    	);
+	end component;
+	
+	component zero_filling	
+		generic (n : natural := 1);	
+		port(
+		ZF_in	: in std_logic_vector (n - 1 downto 0);
+		ZF_out  : out std_logic_vector (15 downto 0)
+		);
+	end component;
 
 begin
 	
     -- PC
-    pc : entity work.PC
+    program_counter : PC
     	port map(
         	clk       => clk,
         	reset     => rst,
@@ -54,14 +196,14 @@ begin
     	);
     
     -- Instruction Memory
-    instruction_memory : entity work.instruction_memory
+    inst_mem : instruction_memory
         port map(
             read_address => pc_out,
             instruction  => instruction
         );
 
     -- Controller
-    controller_inst : entity work.controller
+    controller_inst : controller
         port map(
             instruction => instruction,
             rst         => rst,
@@ -81,37 +223,43 @@ begin
     immediate_z_type <= instruction(8 downto 0);
 
     -- Left Shift Immediate
-    left_shift_imm : entity work.left_shift_imm
+    LSI : left_shift_imm
         port map(
             LSI_in => immediate_y_type,
             LSI_out => immediate_shift_y
         );
         
     -- Sign Extension
-    se : entity work.sign_extend
-        generic map(9)
+    se : sign_extend
         port map(
             SE_in  => immediate_z_type,
             SE_out => immediate_se_z
         );
 
     -- Seven Shift imm
-    seven_shifted : entity work.seven_shift
+    seven_shifted : seven_shift
         port map(
             sevenShift_in  => immediate_z_type,
             sevenShift_out => immediate_seven_shift_z
         );
 
     -- Zero Filling Z Type
-    zf_ztype : entity work.zero_filling
+    zf_ztype : zero_filling
         generic map(9)
         port map(
             ZF_in  => immediate_z_type,
             ZF_out => immediate_zf_z
         );
 
+    -- Shifting Zero Filling Z Type
+    zf_shift_ztype : one_shift
+        port map(
+            oneShift_in  => immediate_zf_z,
+            oneShift_out => immediate_zf_shift_z
+        );
+
     -- Zero Filling Y Type
-    zf_ytype : entity work.zero_filling
+    zf_ytype : zero_filling
         generic map(4)
         port map(
             ZF_in  => immediate_y_type,
@@ -119,7 +267,7 @@ begin
         );
 
     -- Register File
-    register_file : entity work.register_file
+    reg_file : register_file
         port map(
             clk        => clk,
             rst        => rst,
@@ -131,14 +279,14 @@ begin
         );
 
     -- not 16-bit
-    not16: entity work.not_16bit
+    not16 : not_16bit
         port map(
             NOT_in  => reg_out,
             NOT_out => not_out
         );
 
     -- ALU Multiplexer A
-    alu_mux_a : entity work.mux_3to1
+    alu_mux_a : mux_3to1
         port map(
             mux3to1_in0 => immediate_shift_y,
             mux3to1_in1 => not_out,
@@ -148,7 +296,7 @@ begin
         );
 
     -- ALU Multiplexer B
-    alu_mux_b : entity work.mux_4to1
+    alu_mux_b : mux_4to1
         port map(
             mux4to1_in0 => x"0001",
             mux4to1_in1 => reg_out,
@@ -159,7 +307,7 @@ begin
         );
 
     -- ALU
-    alu : entity work.alu
+    alu_exe : alu
         port map(
             ALU_in0 => alu_in_a,
             ALU_in1 => alu_in_b,
@@ -168,7 +316,7 @@ begin
         );
 
     -- adder for RJMP inst.
-    adder : entity work.adder
+    adder_rjmp_instruction : adder
         port map(
             adder_a => pc_out,
             adder_b => alu_result,
@@ -176,17 +324,17 @@ begin
         );
 
     -- Data Memory
-    mem : entity work.data_memory
+    mem : data_memory
         port map(
             clk      => clk,
             MEM_we   => we_mem,
-            MEM_adr  => alu_result,
+            MEM_adr  => immediate_zf_shift_z,
             MEM_din  => reg_out,
             MEM_dout => mem_data_out
         );
 
     -- Write Data address Selection
-    wr_mux : entity work.mux_2to1
+    wr_mux : mux_2to1
 	generic map(4)
         port map(
             mux2to1_in0 => instruction(3 downto 0),
@@ -196,7 +344,7 @@ begin
         );
 
     -- Write Data Selection
-    wd_mux : entity work.mux_3to1
+    wd_mux : mux_3to1
         port map(
             mux3to1_in0 => mem_data_out,
             mux3to1_in1 => immediate_seven_shift_z,
@@ -206,7 +354,7 @@ begin
         );
 
     -- Increment PC
-    pc_increment : entity work.adder
+    pc_increment : adder
         port map(
             adder_a => pc_out,
             adder_b => x"0002",
@@ -214,7 +362,7 @@ begin
         );
 
     -- Mux for PC
-    mux_pc : entity work.mux_2to1
+    mux_pc : mux_2to1
 	generic map(16)
         port map(
             mux2to1_in0 => pc_incremented,
