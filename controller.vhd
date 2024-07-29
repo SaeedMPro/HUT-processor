@@ -5,7 +5,6 @@ use IEEE.numeric_std.all;
 entity controller is
     port(
         instruction : in  std_logic_vector(15 downto 0);
-        rst         : in  std_logic;
         pc_sel      : out std_logic;
         we_pc       : out std_logic;
         we_reg      : out std_logic;
@@ -23,20 +22,9 @@ architecture Behavioral of controller is
 begin
     opcode <= instruction(15 downto 13);
 
-    process(opcode, rst)
+    process(opcode)
     begin
-        if rst = '1' then
-            pc_sel   <= '0';
-            we_pc    <= '0';
-            we_reg   <= '0';
-            we_mem   <= '0';
-            alu_sel_a <= "00";
-            alu_sel_b <= "00";
-            alu_opr  <= '0';
-            wd_sel   <= "00";
-			wr_sel   <= '0';
 
-        else
             case opcode is
                 -- NEG: rA <- 2's Complement (rB)
                 when "000" =>
@@ -134,7 +122,6 @@ begin
                     wr_sel   <= '0';
 
             end case;
-        end if;
     end process;
 end Behavioral;
 

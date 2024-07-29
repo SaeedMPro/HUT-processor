@@ -44,7 +44,6 @@ architecture Behavioral of data_path is
 	component controller
     	port(
         	instruction : in  std_logic_vector(15 downto 0);
-        	rst         : in  std_logic;
         	pc_sel      : out std_logic;
         	we_pc       : out std_logic;
         	we_reg      : out std_logic;
@@ -206,7 +205,6 @@ begin
     controller_inst : controller
         port map(
             instruction => instruction,
-            rst         => rst,
             pc_sel      => pc_sel,
             we_pc       => we_pc,
             we_reg      => we_reg,

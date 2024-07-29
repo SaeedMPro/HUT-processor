@@ -4,10 +4,10 @@ use IEEE.numeric_std.all;
 
 entity register_file is
     port(
-        clk, rst, RE_we: in std_logic;
-        RF_read, RF_adr_w    : in std_logic_vector (3 downto 0);
-        RF_wd    : in std_logic_vector (15 downto 0);
-        RF_out    : out std_logic_vector (15 downto 0)
+        clk, rst, RE_we     : in std_logic;
+        RF_read, RF_adr_w   : in std_logic_vector (3 downto 0);
+        RF_wd               : in std_logic_vector (15 downto 0);
+        RF_out              : out std_logic_vector (15 downto 0)
     );
 end register_file;
 
@@ -17,7 +17,7 @@ architecture Behavioral of register_file is
         port(
             DEC_in    : in std_logic_vector (3 downto 0);
             DEC_en    : in std_logic;
-            DEC_out    : out std_logic_vector (15 downto 0)
+            DEC_out   : out std_logic_vector (15 downto 0)
         );
     end component;
 
@@ -44,24 +44,34 @@ architecture Behavioral of register_file is
         );
     end component;
 
-    component reg is
-        port(
-            clk, rst, we : in std_logic;
-            d_in    : in std_logic_vector (15 downto 0);
-            d_out    : buffer std_logic_vector (15 downto 0)
-        );
-    end component;
-
     signal we_signals  : std_logic_vector(15 downto 0);
     type reg_array is array (0 to 15) of std_logic_vector(15 downto 0);
     signal reg_outputs : reg_array := (
-        x"0000", x"1234", x"5678", x"9ABC",
-        x"DEF0", x"1111", x"2222", x"3333",
-        x"4444", x"5555", x"6666", x"7777",
-        x"8888", x"9999", x"AAAA", x"BBBB"
+        x"0001", x"0002", x"0003", x"0003",
+        x"0004", x"0005", x"0006", x"0004",
+        x"0008", x"0009", x"000A", x"000B",
+        x"000C", x"000D", x"000E", x"000F"
     );
-
 begin
+    
+    process(clk, rst)
+    begin
+        if rst = '1' then
+            reg_outputs <= (
+                x"0001", x"0002", x"0003", x"0003",
+                x"0004", x"0005", x"0006", x"0004",
+                x"0008", x"0009", x"000A", x"000B",
+                x"000C", x"000D", x"000E", x"000F"
+            );
+        elsif rising_edge(clk) then
+            for i in 0 to 15 loop
+                if we_signals(i) = '1' then
+                    reg_outputs(i) <= RF_wd;
+                end if;
+            end loop;
+        end if;
+    end process;
+    
     --write enable signals
     decoder_inst : decoder_4to16
         port map (
@@ -69,18 +79,6 @@ begin
             DEC_en => RE_we,
             DEC_out => we_signals
         );
-
-    --16 registers
-    gen_regs : for i in 0 to 15 generate
-        reg_inst : reg
-            port map (
-                clk => clk,
-                rst => rst,
-                we => we_signals(i),
-                d_in => RF_wd,
-                d_out => reg_outputs(i)
-            );
-    end generate;
 
     --select the output
     mux_inst : mux_16to1
