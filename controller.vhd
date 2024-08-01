@@ -4,7 +4,7 @@ use IEEE.numeric_std.all;
 
 entity controller is
     port(
-        instruction : in  std_logic_vector(15 downto 0);
+        op_code 	: in  std_logic_vector(2 downto 0);
         pc_sel      : out std_logic;
         we_pc       : out std_logic;
         we_reg      : out std_logic;
@@ -18,14 +18,12 @@ entity controller is
 end controller;
 
 architecture Behavioral of controller is
-    signal opcode : std_logic_vector(2 downto 0);
 begin
-    opcode <= instruction(15 downto 13);
 
-    process(opcode)
+    process(op_code)
     begin
 
-            case opcode is
+            case op_code is
                 -- NEG: rA <- 2's Complement (rB)
                 when "000" =>
                     pc_sel   <= '0';
@@ -33,19 +31,19 @@ begin
                     we_reg   <= '1';
                     we_mem   <= '0';
                     alu_sel_a <= "01";
-                    alu_sel_b <= "01";
-                    alu_opr  <= '1';
+                    alu_sel_b <= "00";
+                    alu_opr  <= '0';
                     wd_sel   <= "10";
                     wr_sel   <= '1';
 
-                -- SBR: rB(Imm) <- ?1?
+                -- SBR: rB(Imm) <- '1'
                 when "001" =>
                     pc_sel   <= '0';
                     we_pc    <= '1';
                     we_reg   <= '1';
                     we_mem   <= '0';
                     alu_sel_a <= "00";
-                    alu_sel_b <= "11";
+                    alu_sel_b <= "01";
                     alu_opr  <= '1';
                     wd_sel   <= "10";
                     wr_sel   <= '0';
@@ -69,7 +67,7 @@ begin
                     we_reg   <= '0';
                     we_mem   <= '0';
                     alu_sel_a <= "10";
-                    alu_sel_b <= "01";
+                    alu_sel_b <= "10";
                     alu_opr  <= '0';
                     wd_sel   <= "00";
                     wr_sel   <= '1';
@@ -96,7 +94,7 @@ begin
                     alu_sel_b <= "11";
                     alu_opr  <= '0';
                     wd_sel   <= "00";
-                    wr_sel   <= '1';
+                    wr_sel   <= '0';
 
                 -- STI: Mem[2*Z.F.(Imm)] <- rA
                 when "110" =>
@@ -108,7 +106,7 @@ begin
                     alu_sel_b <= "11";
                     alu_opr  <= '0';
                     wd_sel   <= "00";
-                    wr_sel   <= '1';
+                    wr_sel   <= '0';
 
                 when others =>
                     pc_sel   <= '0';

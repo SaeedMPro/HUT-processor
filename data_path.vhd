@@ -13,6 +13,7 @@ architecture Behavioral of data_path is
 
     -- Signals
     signal instruction            : std_logic_vector(15 downto 0);
+	signal op_code				  : std_logic_vector(2 downto 0);
     signal pc_sel		          : std_logic;
     signal we_pc 		          : std_logic := '0';
     signal we_reg, we_mem         : std_logic;
@@ -37,13 +38,13 @@ architecture Behavioral of data_path is
     signal wd_data                : std_logic_vector(15 downto 0);
     signal wr_adr                 : std_logic_vector(3 downto 0);
     signal wr_sel                 : std_logic;
-    signal adder_RJMP             : std_logic_vector(15 downto 0);
+    signal adder_RJMP             : std_logic_vector(15 downto 0):= x"0000";
     signal alu_in_a               : std_logic_vector(15 downto 0);
     signal alu_in_b               : std_logic_vector(15 downto 0);
 	
 	component controller
     	port(
-        	instruction : in  std_logic_vector(15 downto 0);
+        	op_code : in  std_logic_vector(2 downto 0);
         	pc_sel      : out std_logic;
         	we_pc       : out std_logic;
         	we_reg      : out std_logic;
@@ -181,8 +182,17 @@ architecture Behavioral of data_path is
 		ZF_out  : out std_logic_vector (15 downto 0)
 		);
 	end component;
-
+	
+	signal temp : std_logic;
 begin
+
+	-- Increment PC
+    pc_increment : adder
+        port map(
+            adder_a => pc_out,
+            adder_b => x"0002",
+            adder_out => pc_incremented
+        );
 	
     -- PC
     program_counter : PC
@@ -200,11 +210,13 @@ begin
             read_address => pc_out,
             instruction  => instruction
         );
-
+	
+	
     -- Controller
+	op_code <= instruction(15 downto 13);
     controller_inst : controller
         port map(
-            instruction => instruction,
+            op_code 	=> op_code,
             pc_sel      => pc_sel,
             we_pc       => we_pc,
             we_reg      => we_reg,
@@ -215,10 +227,21 @@ begin
             wd_sel      => wd_sel,
             wr_sel      => wr_sel
         );
+	temp <= pc_sel;
+	-- Mux for PC
+    mux_pc : mux_2to1
+		generic map(16)
+        port map(
+            mux2to1_in0 => pc_incremented,
+            mux2to1_in1 => adder_RJMP,
+            mux2to1_sel => pc_sel,
+            mux2to1_out => pc_in
+        );
+
 
     -- Immediate Value Extraction
     immediate_y_type <= instruction(7 downto 4);
-    immediate_z_type <= instruction(8 downto 0);
+    immediate_z_type <= instruction(12 downto 4);
 
     -- Left Shift Immediate
     LSI : left_shift_imm
@@ -349,24 +372,6 @@ begin
             mux3to1_in2 => alu_result,
             mux3to1_sel => wd_sel,
             mux3to1_out => wd_data
-        );
-
-    -- Increment PC
-    pc_increment : adder
-        port map(
-            adder_a => pc_out,
-            adder_b => x"0002",
-            adder_out => pc_incremented
-        );
-
-    -- Mux for PC
-    mux_pc : mux_2to1
-	generic map(16)
-        port map(
-            mux2to1_in0 => pc_incremented,
-            mux2to1_in1 => adder_RJMP,
-            mux2to1_sel => pc_sel,
-            mux2to1_out => pc_in
         );
 
 end Behavioral;

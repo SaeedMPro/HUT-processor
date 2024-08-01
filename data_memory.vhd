@@ -42,6 +42,6 @@ begin
         end if;
     end process;
 
-    MEM_dout <= my_ram(to_integer(unsigned(MEM_adr)));
+    MEM_dout <= my_ram(to_integer(unsigned(MEM_adr(3 downto 0))));
 end architecture;
 

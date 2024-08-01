@@ -47,7 +47,7 @@ architecture Behavioral of register_file is
     signal we_signals  : std_logic_vector(15 downto 0);
     type reg_array is array (0 to 15) of std_logic_vector(15 downto 0);
     signal reg_outputs : reg_array := (
-        x"0001", x"0002", x"0003", x"0003",
+        x"0000", x"0001", x"0002", x"0003",
         x"0004", x"0005", x"0006", x"0004",
         x"0008", x"0009", x"000A", x"000B",
         x"000C", x"000D", x"000E", x"000F"
@@ -58,7 +58,7 @@ begin
     begin
         if rst = '1' then
             reg_outputs <= (
-                x"0001", x"0002", x"0003", x"0003",
+                x"0000", x"0001", x"0002", x"0003",
                 x"0004", x"0005", x"0006", x"0004",
                 x"0008", x"0009", x"000A", x"000B",
                 x"000C", x"000D", x"000E", x"000F"
