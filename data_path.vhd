@@ -41,6 +41,7 @@ architecture Behavioral of data_path is
     signal adder_RJMP             : std_logic_vector(15 downto 0):= x"0000";
     signal alu_in_a               : std_logic_vector(15 downto 0);
     signal alu_in_b               : std_logic_vector(15 downto 0);
+	signal adder_RJMP_shifted     : std_logic_vector(15 downto 0);
 	
 	component controller
     	port(
@@ -227,13 +228,13 @@ begin
             wd_sel      => wd_sel,
             wr_sel      => wr_sel
         );
-	temp <= pc_sel;
+
 	-- Mux for PC
     mux_pc : mux_2to1
 		generic map(16)
         port map(
             mux2to1_in0 => pc_incremented,
-            mux2to1_in1 => adder_RJMP,
+            mux2to1_in1 => adder_RJMP_shifted,
             mux2to1_sel => pc_sel,
             mux2to1_out => pc_in
         );
@@ -342,6 +343,13 @@ begin
             adder_a => pc_out,
             adder_b => alu_result,
             adder_out => adder_RJMP
+        );
+
+    -- 2*(adder RJMP)
+    adder_shifted : one_shift
+        port map(
+            oneShift_in  => adder_RJMP,
+            oneShift_out => adder_RJMP_shifted
         );
 
     -- Data Memory
