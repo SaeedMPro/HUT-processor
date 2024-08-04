@@ -2,6 +2,7 @@
 *.mti
 *.mpf
 *.bak
+*.vstf
 
 # Common temporary and backup files
 *~
